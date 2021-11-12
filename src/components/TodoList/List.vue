@@ -1,6 +1,7 @@
 <template>
     <v-main class="list">
         <h3 class="text-h3 font-weight-medium mb-5">ToDo List</h3>
+        <h2>{{editedIndex}}</h2>
         <v-card>
             <v-card-title>
                 <v-text-field
@@ -14,9 +15,23 @@
                 <v-btn color="success" dark @click="dialog = true">Tambah</v-btn>
             </v-card-title>
             <v-data-table :headers="headers" :items="todos" :search="search">
+                <template v-slot:[`item.priority`]="{item}">
+                    <v-btn small class="mr-2" @click="showSB(item)"> <i class="fa fa-info-circle"></i></v-btn>
+                    <v-snackbar 
+                        v-model="snackbar"
+                        :timeout="-1"
+                        absolute
+                        bottom
+                        color="success"
+                        outlined
+                        right
+                    >
+                        {{ snackbarText }}
+                    </v-snackbar>
+                </template>
                 <template v-slot:[`item.actions`]="{item}">
-                    <v-btn small class="mr-2" @click="editItem(item)"> edit </v-btn>
-                    <v-btn small @click="deleteItem(item)"> delete </v-btn>
+                    <v-btn small class="mr-2" @click="editItem(item)"> <i class="fa fa-pencil"></i> </v-btn>
+                    <v-btn small @click="deleteItem(item)"> <i class="fa fa-trash" aria-hidden="true"></i></v-btn>
                 </template>
             </v-data-table>
         </v-card>
@@ -28,18 +43,18 @@
                 <v-card-text>
                     <v-container>
                         <v-text-field
-                            v-model="formTodo.task"
+                            v-model="itemEdit.task"
                             label="task"
                             required
                         ></v-text-field>
                         <v-select
-                            v-model="formTodo.priority"
-                            :items="['Penting', 'Biasa', 'Tidak penting']"
+                            v-model="itemEdit.priority"
+                            :items="['Penting', 'Biasa', 'Tidak Penting']"
                             label="Priority"
                             required
                         ></v-select>
                         <v-textarea
-                            v-model="formTodo.note"
+                            v-model="itemEdit.note"
                             label="Note"
                             required
                         ></v-textarea>
@@ -62,6 +77,9 @@ export default {
         return{
             search: null,
             dialog: false,
+            snackbar: false,
+            tes: null,
+            snackbarText: null,
             headers:[
                 {
                     text: "Task",
@@ -90,22 +108,64 @@ export default {
                     note: "Indomi saat coding terbaik gan",
                 },
             ],
+            editedIndex: 0,
+            itemEdit: {
+                task: '', priority: '', note: ''
+            },
             formTodo: {task: null, priority: null, note: null},
         };
     },
     methods:{
+        
         save(){
-            this.todos.push( this.formTodo),
-            this.resetForm( );
-            this.dialog = false;
+            if(this.editedIndex> -1){
+                Object.assign(this.todos[this.editedIndex],this.itemEdit)
+                this.dialog = false;
+            }else{
+                this.todos.push( this.itemEdit),
+                this.resetForm( );
+                this.dialog = false;
+            }
+            this.close()
         },
+        close () {
+        this.dialog = false
+        setTimeout(() => {
+          this.itemEdit = Object.assign({}, this.formTodo)
+          this.editedIndex = -1
+        }, 300)
+      },
         cancel(){
             this.resetForm();
-            this.dialog = false;
+            this.close()
         },
         resetForm(){
             this.formTodo = { task: null, priority: null, note: null };
         },
+        deleteItem(item){
+            const index = this.todos.indexOf(item)
+            confirm('Yakin menghapus?') && this.todos.splice(index, 1);
+            this.dialog=false;
+        },
+        editItem(item){
+            this.editedIndex = this.todos.indexOf(item)
+            this.itemEdit = Object.assign({}, item)
+            this.dialog = true
+        },
+        showSB(item){
+            this.editedIndex = this.todos.indexOf(item)
+            console.log(this.editedIndex);
+            this.snackbarText = Object.assign(this.todos[this.editedIndex],item.priority)
+            this.snackbar = true
+        },
     },
 };
 </script>
+<style>
+.fa-pencil{
+    color: red;
+}
+.fa-trash{
+    color:rgb(29, 243, 75);
+}
+</style>
