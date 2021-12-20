@@ -23,6 +23,13 @@
                 </v-list-item>
             </v-list>
         </v-navigation-drawer>
+        <v-app-bar app fixed height="75px">
+            <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+            <VSpacer />
+            <v-toolbar-items>
+                <v-btn text router @click="logout"><v-icon>mdi-power</v-icon></v-btn>
+            </v-toolbar-items>
+        </v-app-bar>
         <div class="grey lighten-4 fullheight pa-5">
             <router-view></router-view>
         </div>
@@ -34,16 +41,39 @@ export default {
   name: "Dashboard",
   data(){
       return{
+          drawer:true,
           items:[
-              { title: "Dashboard", to: "/"},
-              { title: "GD", to: "/gd"},
+              { title: "Dashboard", to: '/'},
+              { title: "Home", to: '/home'},
+              { title: "Marketplace", to: '/marketplace'},
+              { title: 'Profil', to: '/profil'},
           ],
       };
   },  
+  methods:{
+      logout() {
+            if(confirm("Apakah yakin log out?")) {
+                var url = this.$api + '/logout';
+                this.$http.get(url, {
+                    headers: {
+                    'Authorization' : 'Bearer ' + localStorage.getItem('token'),
+                    }
+                });
+                localStorage.removeItem('token');  
+                this.$router.push({
+                    name: 'Login',
+                });     
+            }
+        }
+  }
 };
 </script>
 <style scoped>
 .fullheight{
     min-height: 100vh !important;
+}
+.router{
+    text-decoration: none;
+    color: black;
 }
 </style>
